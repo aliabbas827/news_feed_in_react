@@ -3,7 +3,8 @@ import { useDispatch } from 'react-redux';
 import { Button, Input, Dropdown, Space } from 'antd';
 import { editComment, deleteComment } from '../redux/post/postSlice';
 import type { MenuProps } from 'antd';
-
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
 interface CommentProps {
   id: string;
   postId: string;
@@ -16,6 +17,7 @@ const Comment: React.FC<CommentProps> = ({ id, postId, body, username, created_a
   const [isEditing, setIsEditing] = useState(false);
   const [editedBody, setEditedBody] = useState(body);
   const dispatch = useDispatch();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleSave = () => {
     dispatch(editComment({
@@ -46,11 +48,25 @@ const Comment: React.FC<CommentProps> = ({ id, postId, body, username, created_a
 
   ];
 
+  const addEmoji = (e: { native: any; }) => {
+    let emoji = e.native;
+    setEditedBody(editedBody + emoji);
+  };
+
   return (
     <div className="p-4 bg-slate-100 shadow-md rounded-lg my-4">
       {isEditing ? (
         <>
           <Input value={editedBody} onChange={(e) => setEditedBody(e.target.value)} />
+          <div className='flex sm:justify-start sm:flex-row-reverse sm:items-start flex-col items-end mt-3'>
+          <Button icon={<span role="img" aria-label="emoji">😀</span>}
+            onClick={() => setShowEmojiPicker(val => !val)}
+          />
+          {showEmojiPicker && (
+            <Picker data={data} onEmojiSelect={addEmoji} />
+          )}
+          </div>
+         
           <div className='pt-2'>
           <Button onClick={handleSave} className="mt-2">Save</Button>
           <Button onClick={() => setIsEditing(false)} className="ml-2">Cancel</Button>
