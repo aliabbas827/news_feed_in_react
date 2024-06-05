@@ -1,9 +1,9 @@
-import { Button } from 'antd';
+import Feed from './components/Feed';
 
 const App = () => (
-  <div className="App">
-    <Button type="primary">Button</Button>
-  </div>
+ <> 
+ <Feed />
+ </>
 );
 
 export default App;
