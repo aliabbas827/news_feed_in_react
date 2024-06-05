@@ -1,7 +1,11 @@
+// Post.tsx
+
 import React, { useState } from 'react';
-import { Card, Button, Input } from 'antd';
-import { useDispatch } from 'react-redux';
-import { editPost, deletePost, addComment } from '../redux/post/postSlice';
+import { Card, Button, Input, Dropdown, Space } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { editPost, deletePost, addComment, toggleLikeDislike } from '../redux/post/postSlice';
+import type { MenuProps } from 'antd';
 import Comment from './Comment';
 
 interface PostProps {
@@ -9,37 +13,24 @@ interface PostProps {
   body: string;
   username: string;
   created_at: string;
-  comments: any[]; 
+  comments: any[];
+  likes: number;
+  dislikes: number;
+  userReaction: 'like' | 'dislike' | null;
 }
+
+
 
 const Post: React.FC<PostProps> = ({ id, body, username, created_at, comments }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedBody, setEditedBody] = useState(body);
   const [newComment, setNewComment] = useState('');
+
   const dispatch = useDispatch();
+  const post = useSelector((state: RootState) => state.posts.find(p => p.id === id));
 
-  const handleDelete = () => {
-    dispatch(deletePost(id));
-  };
-
-  const handleEdit = () => {
-    if (isEditing) {
-      dispatch(editPost({
-        id, body: editedBody, username, created_at,
-        comments: [],
-        likes: 0,
-        dislikes: 0
-      }));
-      setIsEditing(false);
-    } else {
-      setIsEditing(true);
-      setEditedBody(body);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditedBody(body);
+  const handleLikeDislike = (type: 'like' | 'dislike') => {
+    dispatch(toggleLikeDislike({ id, type }));
   };
 
   const handleAddComment = () => {
@@ -48,7 +39,7 @@ const Post: React.FC<PostProps> = ({ id, body, username, created_at, comments })
         postId: id,
         comment: {
           body: newComment,
-          username: "Static User",
+          username: "Muhammad Ali Abbas",
           created_at: new Date().toISOString(),
           likes: 0,
           dislikes: 0,
@@ -59,33 +50,93 @@ const Post: React.FC<PostProps> = ({ id, body, username, created_at, comments })
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const items: MenuProps['items'] = [
+    {
+      key: '1',
+      label: (
+        <h1 onClick={() => setIsEditing(true)}  className=''>Edit</h1>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <h1 onClick={() => dispatch(deletePost(id))} >Delete</h1>
+      ),
+    },
+
+  ];
+
   return (
-    <Card title={username} style={{ marginBottom: 20 }}>
+    <Card title={`${username}`} extra={`Comments: ${comments.length}`} style={{ marginBottom: 20 }}>
       {isEditing ? (
         <>
-          <Input.TextArea rows={2} value={editedBody} onChange={(e) => setEditedBody(e.target.value)} />
-          <Button onClick={handleEdit}>Save</Button>
-          <Button onClick={handleCancelEdit} style={{ marginLeft: 8 }}>Cancel</Button>
+          <Input value={editedBody} onChange={(e) => setEditedBody(e.target.value)} />
+          <div className='pt-3'> 
+          <Button onClick={() => {
+            if (post) {
+              dispatch(editPost({ id, body: editedBody, username, created_at, comments, likes: post.likes, dislikes: post.dislikes, userReaction: post.userReaction }));
+            }
+            setIsEditing(false);
+          }}>Save</Button>
+          <Button onClick={() => setIsEditing(false)} style={{ marginLeft: 8 }}>Cancel</Button>
+          </div>
+         
         </>
       ) : (
         <>
-          <p>{body}</p>
-          <Button onClick={handleEdit}>Edit</Button>
-          <Button onClick={handleDelete} style={{ marginLeft: 8 }}>Delete</Button>
+        <div className='flex items-center justify-between'>
+        <p>{body}</p>
+          <Space direction="vertical">
+            <Space wrap>
+              <Dropdown menu={{ items }} placement="bottom" >
+                <Button>Options</Button>
+              </Dropdown>
+            </Space>
+          </Space>
+        </div>
+         
+
         </>
       )}
-      <Input.TextArea
-        rows={2}
+      <div className='flex sm:flex-row flex-col sm:items-center sm:justify-between'>
+      <div className="flex items-center  my-4">
+        <Button
+          onClick={() => handleLikeDislike('like')}
+          type={post?.userReaction === 'like' ? 'primary' : 'default'}
+        >
+          👍Liked
+        </Button>
+        <Button
+          onClick={() => handleLikeDislike('dislike')}
+          type={post?.userReaction === 'dislike' ? 'primary' : 'default'}
+          className="ml-2"
+        >
+          👎Disliked
+        </Button>
+      </div>
+      <div>
+        <h1 className='font-semibold'>{formatDate(created_at)}</h1>
+      </div>
+      </div>
+     
+      <h2 className='mt-5 font-semibold text-lg'>Comments</h2>
+      <div className='mt-2 flex flex-col items-end'>
+      <Input
         value={newComment}
         onChange={(e) => setNewComment(e.target.value)}
         placeholder="Add a comment..."
       />
       <Button onClick={handleAddComment} className="mt-2">Add Comment</Button>
-      <div className="mt-4">
-        {comments.slice().reverse().map(comment => (
-          <Comment key={comment.id} {...comment} postId={id} />
-        ))}
+      
       </div>
+      {comments.slice().reverse().map(comment => (
+        <Comment key={comment.id} {...comment} postId={id} />
+      ))}
     </Card>
   );
 };

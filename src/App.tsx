@@ -1,8 +1,12 @@
 import Feed from './components/Feed';
 
 const App = () => (
- <> 
- <Feed />
+ <>
+ <div className='bg-slate-200 h-screen'>
+ <div className='sm:w-[60%] w-[95%] m-auto ' >
+ <Feed /> 
+ </div> 
+ </div>
  </>
 );
 

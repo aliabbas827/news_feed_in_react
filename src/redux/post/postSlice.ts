@@ -9,6 +9,7 @@ interface PostState {
   comments: CommentState[];
   likes: number;
   dislikes: number;
+  userReaction: 'like' | 'dislike' | null; 
 }
 
 interface CommentState {
@@ -73,22 +74,26 @@ const postsSlice = createSlice({
         post.comments = post.comments.filter(comment => comment.id !== action.payload.commentId);
       }
     },
-    toggleLike(state, action: PayloadAction<{ id: string, type: 'post' | 'comment', isLike: boolean }>) {
-      const item = state.find(item => item.id === action.payload.id || item.comments.some(comment => comment.id === action.payload.id));
-      if (item) {
-        const target = action.payload.type === 'post' ? item : item.comments.find(comment => comment.id === action.payload.id);
-        if (target) {
-          if (action.payload.isLike) {
-            target.likes++;
+    toggleLikeDislike(state, action: PayloadAction<{ id: string; type: 'like' | 'dislike' }>) {
+      const post = state.find(post => post.id === action.payload.id);
+      if (post) {
+        if (action.payload.type === 'like') {
+          if (post.userReaction === 'like') {
+            post.userReaction = null;
           } else {
-            target.dislikes++;
+            post.userReaction = 'like';
+          }
+        } else if (action.payload.type === 'dislike') {
+          if (post.userReaction === 'dislike') {
+            post.userReaction = null;
+          } else {
+            post.userReaction = 'dislike';
           }
         }
       }
     },
   },
 });
-
-export const { addPost, editPost, deletePost, addComment, editComment, deleteComment, toggleLike } = postsSlice.actions;
+export const { addPost, editPost, deletePost, addComment, editComment, deleteComment, toggleLikeDislike } = postsSlice.actions;
 export const selectPosts = (state: RootState) => state.posts;
 export default postsSlice.reducer;

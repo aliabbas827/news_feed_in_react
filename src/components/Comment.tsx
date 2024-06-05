@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Button, Input } from 'antd';
+import { Button, Input, Dropdown, Space } from 'antd';
 import { editComment, deleteComment } from '../redux/post/postSlice';
+import type { MenuProps } from 'antd';
 
 interface CommentProps {
   id: string;
@@ -29,19 +30,47 @@ const Comment: React.FC<CommentProps> = ({ id, postId, body, username, created_a
     dispatch(deleteComment({ postId, commentId: id }));
   };
 
+  const items: MenuProps['items'] = [
+    {
+      key: '1',
+      label: (
+        <h1 onClick={() => setIsEditing(true)}>Edit</h1>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <h1 onClick={handleDelete}>Delete</h1>
+      ),
+    },
+
+  ];
+
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg mb-2">
+    <div className="p-4 bg-slate-100 shadow-md rounded-lg my-4">
       {isEditing ? (
         <>
-          <Input.TextArea value={editedBody} onChange={(e) => setEditedBody(e.target.value)} />
-          <Button type="primary" onClick={handleSave} className="mt-2">Save</Button>
+          <Input value={editedBody} onChange={(e) => setEditedBody(e.target.value)} />
+          <div className='pt-2'>
+          <Button onClick={handleSave} className="mt-2">Save</Button>
           <Button onClick={() => setIsEditing(false)} className="ml-2">Cancel</Button>
+          </div>
+         
         </>
       ) : (
         <>
-          <p>{body}</p>
-          <Button onClick={() => setIsEditing(true)}>Edit</Button>
-          <Button onClick={handleDelete} className="ml-2">Delete</Button>
+        <div className='flex items-center justify-between'>
+        <p>{body}</p>
+          <Space direction="vertical">
+            <Space wrap>
+              <Dropdown menu={{ items }} placement="bottom" >
+                <Button>Options</Button>
+              </Dropdown>
+            </Space>
+          </Space>
+        </div>
+         
+          
         </>
       )}
     </div>
