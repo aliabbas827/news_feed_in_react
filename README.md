@@ -1,4 +1,4 @@
-# CodionsLab_React_Test
+# News Feed in React.js
 
 This repository is of a news feed in ReactTS using Vite, Ant design, Typescript, Tailwind, and Redux.
 
